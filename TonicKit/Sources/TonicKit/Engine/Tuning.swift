@@ -17,6 +17,8 @@ public struct Tuning: Sendable, Hashable {
     public var hitThreshold = 0.8
     /// A slip on an avoid behavior costs this many times the behavior's normal max points.
     public var slipPenalty = 2.0
+    /// When anything slips, no behavior gets its streak bonus that day (streaks themselves are kept).
+    public var slipCancelsStreakBonus = true
 
     // MARK: Compounding
     /// Extra XP per consecutive streak day (0.05 = +5%).

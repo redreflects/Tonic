@@ -21,7 +21,7 @@ Every behavior is one of four types, and each day it gets a quality from 0 to 1:
 | Volume | Study minutes | Credit up to a reference amount, bonus XP beyond it, personal records |
 
 - **Daily Score (−100 to 100):** your behaviors weighted by priority. Rank #1 weighs 2× the last one, and your 2–3 Focus habits get an extra 1.5×. Weights always add up to 1, so a perfect day is 100.
-- **XP:** your Daily Score plus compounding bonuses: **+5% per streak day** (up to +100%), **×1.25 Perfect Focus Day**, **combo week** (5 days at 70+), **comeback** and **personal record** bonuses.
+- **XP:** your Daily Score plus compounding bonuses: **+5% per streak day** (up to +100%), **×1.25 Perfect Focus Day**, **combo week** (5 days at 70+), **comeback** and **personal record** bonuses. A slip on any habit cancels every streak bonus for that day, so slipping always costs real XP.
 - **Levels:** XP to the next level = `200 × level^0.75`, so each level takes a little longer. **Levels never drop**: a slip can drain XP back to the start of your level, but no further.
 - **Streak shields:** earn one every 7-day streak (hold up to 2). A shield covers a missed day automatically. Slips are never shielded.
 - **Ranks:** every 10 levels, in your choice of theme:

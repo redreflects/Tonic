@@ -99,6 +99,8 @@ public struct ProgressionEngine: Sendable {
             var events: [ProgressEvent] = []
             var score = 0.0
             var positiveXP = 0.0
+            /// The extra XP from streak multipliers, kept apart so a slip can cancel it.
+            var streakBonusXP = 0.0
             var negativeXP = 0.0
             var bonusXP = 0.0
             var anySlip = false
@@ -134,7 +136,9 @@ public struct ProgressionEngine: Sendable {
                         p.shields += 1
                         events.append(.streakShieldEarned(behaviorID: behavior.id))
                     }
-                    positiveXP += points * outcome.quality * tuning.streakMultiplier(forStreak: p.streak)
+                    let base = points * outcome.quality
+                    positiveXP += base
+                    streakBonusXP += base * (tuning.streakMultiplier(forStreak: p.streak) - 1)
                     if behavior.isFocus { focusHits += 1 }
                     if behavior.kind == .avoid && p.comebackPending {
                         p.comebackPending = false
@@ -172,6 +176,11 @@ public struct ProgressionEngine: Sendable {
                 }
 
                 state.behaviors[behavior.id] = p
+            }
+
+            // Any slip wipes out the day's streak bonuses, so a slip always costs real XP.
+            if !(anySlip && tuning.slipCancelsStreakBonus) {
+                positiveXP += streakBonusXP
             }
 
             if focusCount > 0 && focusHits == focusCount && !anySlip {

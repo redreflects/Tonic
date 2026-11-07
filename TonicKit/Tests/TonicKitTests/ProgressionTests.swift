@@ -25,6 +25,25 @@ struct ProgressionTests {
         #expect(state.behaviors["read"]!.streak == 4)
     }
 
+    @Test func slipCancelsStreakBonusesThatDay() {
+        // Read is #1 (2/3 weight), alcohol #2 (1/3 weight).
+        let b = [check("read", rank: 0), avoid("alcohol", rank: 1)]
+        var logs = daily("read", .completed(true), days: 26) + daily("alcohol", .slipped(false), days: 25)
+        logs.append(LogEntry(behaviorID: "alcohol", day: monday.advanced(by: 25), value: .slipped(true)))
+
+        let slipDay = replay(b, logs, days: 26).days[25]
+        // Read earns its plain 66.7 points (no 2x streak bonus); the slip costs 2 x 33.3.
+        #expect(abs(slipDay.xp) < 1e-9)
+        #expect(ProgressionEngine().replay(behaviors: b, logs: logs, from: monday, through: monday.advanced(by: 25), pendingDays: 0)
+            .behaviors["read"]!.streak == 26) // the streak itself survives
+
+        var lenient = Tuning.standard
+        lenient.slipCancelsStreakBonus = false
+        let oldRules = ProgressionEngine(tuning: lenient)
+            .replay(behaviors: b, logs: logs, from: monday, through: monday.advanced(by: 25), pendingDays: 0)
+        #expect(oldRules.days[25].xp > 60) // what used to happen
+    }
+
     @Test func comebackBonusAfterSlip() {
         let b = [avoid("alcohol")]
         let logs = [

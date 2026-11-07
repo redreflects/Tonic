@@ -18,53 +18,6 @@ struct MainTabView: View {
     }
 }
 
-/// Temporary Today screen: shows level, rank and tracked behaviors.
-/// Daily check-ins and the score ring arrive in Phase 3.
-struct TodayView: View {
-    @Query(sort: \TrackedBehavior.priorityRank) private var tracked: [TrackedBehavior]
-    @AppStorage(AppSettings.rankThemeID) private var rankThemeID = RankTheme.plant.id
-
-    private var theme: RankTheme { RankTheme.theme(withID: rankThemeID) }
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    HStack(spacing: 16) {
-                        Image(systemName: theme.symbol)
-                            .font(.largeTitle)
-                            .foregroundStyle(.tint)
-                        VStack(alignment: .leading) {
-                            Text("Level 1")
-                                .font(.title2.bold())
-                            Text(theme.rank(forLevel: 1).name)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-                Section {
-                    ForEach(tracked.filter(\.isEnabled)) { item in
-                        HStack {
-                            BehaviorRow(behavior: item.behavior)
-                            Spacer()
-                            if item.isFocus {
-                                Image(systemName: "star.fill")
-                                    .foregroundStyle(.yellow)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Your behaviors")
-                } footer: {
-                    Text("Daily check-ins are coming next.")
-                }
-            }
-            .navigationTitle("Today")
-        }
-    }
-}
-
 struct ProgressPlaceholderView: View {
     var body: some View {
         NavigationStack {
@@ -102,6 +55,17 @@ struct SettingsView: View {
                 } footer: {
                     Text("Your data is stored only on this phone.")
                 }
+                #if DEBUG
+                Section {
+                    Button("Add 30 days of sample history") {
+                        SampleHistory.add(days: 30, context: context)
+                    }
+                } header: {
+                    Text("Developer")
+                } footer: {
+                    Text("Debug builds only. Fills in the 30 days before your start date with realistic logs.")
+                }
+                #endif
             }
             .navigationTitle("Settings")
             .confirmationDialog(

@@ -102,7 +102,7 @@ struct OnboardingSummaryView: View {
             Section("How you'll score") {
                 rule("100", "A perfect day scores 100, weighted by your priorities.")
                 rule("flame.fill", "Streaks add 5% XP per day, up to double.")
-                rule("exclamationmark.triangle.fill", "Slipping on a habit you're avoiding costs double and resets its streak.")
+                rule("exclamationmark.triangle.fill", "Slipping on a habit you're avoiding costs double, resets its streak, and cancels that day's streak bonuses.")
                 rule("shield.fill", "Every 7-day streak earns a shield that covers one missed day.")
                 rule("arrow.up.circle.fill", "Levels never go down.")
             }
