@@ -9,24 +9,11 @@ struct MainTabView: View {
                 TodayView()
             }
             Tab("Progress", systemImage: "chart.line.uptrend.xyaxis") {
-                ProgressPlaceholderView()
+                ProgressTabView()
             }
             Tab("Settings", systemImage: "gearshape.fill") {
                 SettingsView()
             }
-        }
-    }
-}
-
-struct ProgressPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            ContentUnavailableView(
-                "Progress",
-                systemImage: "chart.line.uptrend.xyaxis",
-                description: Text("Streaks, personal records and history will live here.")
-            )
-            .navigationTitle("Progress")
         }
     }
 }

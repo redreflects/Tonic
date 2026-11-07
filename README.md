@@ -6,8 +6,8 @@ records and ranks as you improve.
 
 Tonic is personal and private. There are no accounts and no servers, and all data stays on your phone.
 
-> **Status:** early development. The scoring engine (`TonicKit`) is built and tested,
-> and onboarding works. Daily check-ins and the score dashboard are next.
+> **Status:** early development. Onboarding, daily check-ins, the score dashboard,
+> level-up celebrations and the Progress tab work. Achievements, reminders and widgets are next.
 
 ## How scoring works
 
@@ -46,7 +46,7 @@ Tonic.xcodeproj      Xcode project for the iOS app
 Tonic/               SwiftUI app
   App/               App entry point and settings keys
   Models/            On-device storage (SwiftData)
-  Features/          Onboarding, Today, Progress, Settings
+  Features/          Onboarding, Today (check-ins, celebrations), Progress (charts, records), Settings
   DesignSystem/      Shared views and styling
 TonicKit/            Swift package: scoring engine, models, presets (no UI)
   Sources/TonicKit/
