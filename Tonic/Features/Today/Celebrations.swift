@@ -46,6 +46,13 @@ final class CelebrationCenter {
         }
     }
 
+    /// Banners for achievements earned by the latest change.
+    func present(achievements: [Achievement]) {
+        for a in achievements {
+            toasts.append(Toast(icon: a.icon, color: .purple, title: "Achievement: \(a.title)", message: a.detail))
+        }
+    }
+
     func dismissToast(_ toast: Toast) {
         toasts.removeAll { $0.id == toast.id }
     }
@@ -56,6 +63,7 @@ final class CelebrationCenter {
         case .bestDay(let id, _): "bestDay:\(id)"
         case .bestWeek(let id, _): "bestWeek:\(id)"
         case .streakRecord(let id, _): "streakRecord:\(id)"
+        case .questCompleted(let id, _, _): "quest:\(id)"
         default: "\(event)"
         }
     }
@@ -85,6 +93,8 @@ final class CelebrationCenter {
             return Toast(icon: "arrow.uturn.up.circle.fill", color: .green, title: "Comeback!", message: "Back on track with \(name(id)). +25 XP.")
         case .slipped(let id):
             return Toast(icon: "exclamationmark.triangle.fill", color: .red, title: "Slip: \(name(id))", message: "Streak reset and no streak bonuses today.")
+        case .questCompleted(_, let title, let reward):
+            return Toast(icon: "map.fill", color: .accentColor, title: "Quest complete!", message: "\(title). +\(Int(reward)) XP.")
         case .levelUp, .rankUp:
             return nil // shown full screen instead
         }

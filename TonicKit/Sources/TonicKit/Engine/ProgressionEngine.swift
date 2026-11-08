@@ -13,6 +13,7 @@ public enum ProgressEvent: Hashable, Sendable {
     case slipped(behaviorID: String)
     case bestDay(behaviorID: String, amount: Double)
     case bestWeek(behaviorID: String, amount: Double)
+    case questCompleted(questID: String, title: String, rewardXP: Double)
 }
 
 /// Running stats for one behavior.
@@ -42,6 +43,12 @@ public struct DayResult: Hashable, Sendable {
     /// The day is still open for logging, so missing entries didn't count against streaks.
     public let isPending: Bool
     public let events: [ProgressEvent]
+    /// Total XP and level at the end of this day.
+    public let totalXP: Double
+    public let level: Int
+    /// Each active behavior's quality (−2 to 1) and streak at the end of this day.
+    public let qualities: [String: Double]
+    public let streaks: [String: Int]
 }
 
 public struct ProgressionState: Hashable, Sendable {
@@ -50,6 +57,8 @@ public struct ProgressionState: Hashable, Sendable {
     public var behaviors: [String: BehaviorProgress] = [:]
     public var days: [DayResult] = []
     public var curve: LevelCurve = LevelCurve()
+    /// This week's quests and how far along each one is.
+    public var quests: [QuestProgress] = []
 
     public var xpIntoLevel: Double { totalXP - curve.totalXP(toReach: level) }
     public var xpForNextLevel: Double { curve.xpToAdvance(from: level) }
@@ -91,11 +100,22 @@ public struct ProgressionEngine: Sendable {
 
         let firstPendingDay = end.advanced(by: 1 - max(pendingDays, 0))
         var comboDays = 0
+        var questWeek = Int.min
+        var quests: [Quest] = []
+        var week = WeekStats()
+        var weekFinished = false
 
         for day in start...end {
             let isPending = day >= firstPendingDay
             let todays = active.filter { $0.isActive(on: day) }
             let weights = Weighting.normalizedWeights(for: todays, tuning: tuning)
+            if day.weekIndex != questWeek {
+                questWeek = day.weekIndex
+                quests = QuestBoard.quests(forWeek: questWeek, behaviors: todays)
+                week = WeekStats()
+                weekFinished = false
+            }
+            var qualities: [String: Double] = [:]
 
             var events: [ProgressEvent] = []
             var score = 0.0
@@ -115,6 +135,10 @@ public struct ProgressionEngine: Sendable {
                 var p = state.behaviors[behavior.id] ?? BehaviorProgress()
 
                 score += points * outcome.quality
+                qualities[behavior.id] = outcome.quality
+                if outcome.hit { week.hits[behavior.id, default: 0] += 1 }
+                if outcome.slipped { week.slips += 1 }
+                if let amount = outcome.amount { week.volume[behavior.id, default: 0] += amount }
 
                 if outcome.slipped {
                     anySlip = true
@@ -187,9 +211,15 @@ public struct ProgressionEngine: Sendable {
             if focusCount > 0 && focusHits == focusCount && !anySlip {
                 positiveXP *= tuning.perfectFocusMultiplier
                 events.append(.perfectFocusDay)
+                week.perfectFocusDays += 1
             }
 
             score = min(max(score, -100), 100)
+            for quest in quests {
+                if case .strongDays(let minScore, _) = quest.goal, score >= minScore {
+                    week.strongDays[minScore, default: 0] += 1
+                }
+            }
             if !isPending && score >= tuning.comboWeekScoreThreshold { comboDays += 1 }
 
             if day.isLastDayOfWeek {
@@ -214,6 +244,16 @@ public struct ProgressionEngine: Sendable {
                 for id in state.behaviors.keys { state.behaviors[id]?.currentWeekTotal = 0 }
             }
 
+            // Quests: reward each one the first time it's done.
+            weekFinished = day.isLastDayOfWeek && !isPending
+            for quest in quests where !week.completed.contains(quest.id) {
+                if QuestBoard.progress(quest, stats: week, weekFinished: weekFinished).isComplete {
+                    week.completed.insert(quest.id)
+                    bonusXP += quest.rewardXP
+                    events.append(.questCompleted(questID: quest.id, title: quest.title, rewardXP: quest.rewardXP))
+                }
+            }
+
             let dayXP = positiveXP + negativeXP + bonusXP
 
             // XP can fall, but never below the start of the current level.
@@ -228,9 +268,15 @@ public struct ProgressionEngine: Sendable {
                 state.level = newLevel
             }
 
-            state.days.append(DayResult(day: day, score: score, xp: dayXP, isPending: isPending, events: events))
+            state.days.append(DayResult(
+                day: day, score: score, xp: dayXP, isPending: isPending, events: events,
+                totalXP: state.totalXP, level: state.level,
+                qualities: qualities,
+                streaks: Dictionary(uniqueKeysWithValues: todays.map { ($0.id, state.behaviors[$0.id]?.streak ?? 0) })
+            ))
         }
 
+        state.quests = quests.map { QuestBoard.progress($0, stats: week, weekFinished: weekFinished) }
         return state
     }
 }

@@ -21,6 +21,14 @@ struct ProgressTabView: View {
                     RankLadderCard(state: state, theme: theme)
                 }
 
+                Section("Character") {
+                    CharacterRadar(stats: CharacterStats.compute(days: state.days, behaviors: tracked.map(\.behavior)))
+                }
+
+                Section("You vs. past you") {
+                    PastSelfCard(state: state)
+                }
+
                 Section {
                     ScoreChart(days: Array(state.days.suffix(30)))
                 } header: {
@@ -34,6 +42,13 @@ struct ProgressTabView: View {
 
                 Section("History") {
                     ScoreCalendar(days: state.days)
+                }
+
+                let unlocked = Achievements.unlocked(in: state, behaviors: tracked.map(\.behavior))
+                Section {
+                    AchievementGrid(unlocked: unlocked)
+                } header: {
+                    Text("Achievements · \(unlocked.count) of \(Achievements.all.count)")
                 }
 
                 Section("Streaks & records") {

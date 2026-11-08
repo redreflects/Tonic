@@ -36,6 +36,8 @@ struct SettingsView: View {
                 } footer: {
                     Text("Add new habits, turn some off, re-rank, change Focus habits or edit targets.")
                 }
+                ReminderSettingsSection()
+
                 Section("Rank theme") {
                     Picker("Theme", selection: $rankThemeID) {
                         ForEach(RankTheme.all) { theme in

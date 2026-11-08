@@ -7,7 +7,7 @@ public struct LevelCurve: Sendable, Hashable {
     public var base: Double
     public var exponent: Double
 
-    public init(base: Double = 200, exponent: Double = 0.75) {
+    public init(base: Double = 220, exponent: Double = 0.75) {
         self.base = base
         self.exponent = exponent
     }

@@ -7,9 +7,15 @@ struct ProgressionTests {
         let b = [check("read")]
         let state = replay(b, daily("read", .completed(true), days: 25), days: 25)
         #expect(state.behaviors["read"]!.streak == 25)
-        #expect(state.days[0].xp == 100)
-        #expect(abs(state.days[10].xp - 150) < 1e-9) // day 11: +50%
-        #expect(abs(state.days[24].xp - 200) < 1e-9) // capped at +100%
+        // Leave out weekly quest rewards, which can land on the same days.
+        func habitXP(_ i: Int) -> Double {
+            state.days[i].xp - state.days[i].events.reduce(0) { total, event in
+                if case .questCompleted(_, _, let reward) = event { total + reward } else { total }
+            }
+        }
+        #expect(habitXP(0) == 100)
+        #expect(abs(habitXP(10) - 150) < 1e-9) // day 11: +50%
+        #expect(abs(habitXP(24) - 200) < 1e-9) // capped at +100%
     }
 
     @Test func slipCostsDoubleAndResetsStreak() {

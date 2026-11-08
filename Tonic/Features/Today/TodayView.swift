@@ -1,6 +1,7 @@
 import SwiftData
 import SwiftUI
 import TonicKit
+import WidgetKit
 
 struct TodayView: View {
     @Environment(\.modelContext) private var context
@@ -14,6 +15,8 @@ struct TodayView: View {
     @State private var headerCollapsed = false
     @State private var expandedHeaderHeight: CGFloat = 220
     @State private var celebrations = CelebrationCenter()
+    @AppStorage(AppSettings.lastRecapWeek) private var lastRecapWeek = 0
+    @State private var showingRecap = false
 
     private var theme: RankTheme { RankTheme.theme(withID: rankThemeID) }
 
@@ -43,6 +46,15 @@ struct TodayView: View {
                 if !others.isEmpty {
                     Section(focus.isEmpty ? "Habits" : "Everything else") {
                         ForEach(others) { row($0, day: day, value: dayLogs[$0.id], state: state) }
+                    }
+                }
+                if !state.quests.isEmpty {
+                    Section {
+                        ForEach(state.quests) { QuestRow(progress: $0) }
+                    } header: {
+                        Text("This week's quests")
+                    } footer: {
+                        Text("New quests every Monday.")
                     }
                 }
             }
@@ -95,6 +107,15 @@ struct TodayView: View {
             }
         }
         .animation(.snappy, value: celebrations.currentToast)
+        .onAppear { checkForRecap(state: state, today: today) }
+        .task(id: widgetSnapshot(state: state, today: today)) {
+            // Keep the home-screen widget in step with today's numbers.
+            widgetSnapshot(state: state, today: today).save()
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        .sheet(isPresented: $showingRecap) {
+            recapSheet(state: state, today: today)
+        }
         .fullScreenCover(item: $celebrations.levelUp) { moment in
             LevelUpView(moment: moment, theme: theme) { celebrations.levelUp = nil }
         }
@@ -113,11 +134,66 @@ struct TodayView: View {
         // Recompute right away from the saved data to see what this change unlocked.
         let allLogs = (try? context.fetch(FetchDescriptor<DailyLog>())) ?? []
         let after = ProgressCalculator.state(tracked: tracked, logs: allLogs, journeyStartDay: journeyStartDay)
+        let behaviors = tracked.map(\.behavior)
+        let earnedBefore = Achievements.unlocked(in: before, behaviors: behaviors)
+        let earnedAfter = Achievements.unlocked(in: after, behaviors: behaviors)
         withAnimation(.snappy) {
-            celebrations.present(
-                before: before, after: after, from: day,
-                behaviors: tracked.map(\.behavior), theme: theme
-            )
+            celebrations.present(before: before, after: after, from: day, behaviors: behaviors, theme: theme)
+            celebrations.present(achievements: Achievements.all.filter { earnedAfter[$0.id] != nil && earnedBefore[$0.id] == nil })
         }
+    }
+
+    private func widgetSnapshot(state: ProgressionState, today: Day) -> WidgetSnapshot {
+        let result = state.days.last { $0.day == today }
+        let focus = tracked.filter { $0.isEnabled && $0.isFocus }.map(\.behavior)
+        return WidgetSnapshot(
+            dayIndex: today.index,
+            score: result?.score ?? 0,
+            level: state.level,
+            levelProgress: state.levelProgress,
+            rankName: theme.rank(forLevel: state.level).name,
+            rankSymbol: theme.symbol,
+            focus: focus.map { b in
+                WidgetSnapshot.Habit(
+                    name: b.name, icon: b.icon,
+                    streak: state.behaviors[b.id]?.streak ?? 0,
+                    isDone: (result?.qualities[b.id] ?? 0) >= Tuning.standard.hitThreshold
+                )
+            },
+            longestStreak: state.behaviors.filter { id, _ in tracked.contains { $0.id == id && $0.isEnabled } }.values.map(\.streak).max() ?? 0,
+            questsDone: state.quests.filter(\.isComplete).count,
+            questsTotal: state.quests.count
+        )
+    }
+
+    /// Show last week's recap once, the first time the app opens in a new week.
+    private func checkForRecap(state: ProgressionState, today: Day) {
+        guard journeyStartDay != 0, lastRecapWeek < today.weekIndex else { return }
+        if PeriodSummary.week(today.weekIndex - 1, in: state).days > 0 {
+            showingRecap = true
+        } else {
+            lastRecapWeek = today.weekIndex
+        }
+    }
+
+    private func recapSheet(state: ProgressionState, today: Day) -> some View {
+        let lastWeek = today.weekIndex - 1
+        let behaviors = tracked.map(\.behavior)
+        let earned = Achievements.unlocked(in: state, behaviors: behaviors)
+        let newOnes = Achievements.all.filter { earned[$0.id]?.weekIndex == lastWeek }
+        let lastDay = state.days.last { $0.day.weekIndex == lastWeek }
+        let top = lastDay?.streaks.max { $0.value < $1.value }
+        let topName = top.flatMap { entry in behaviors.first { $0.id == entry.key }?.name }
+        return WeeklyRecapView(
+            lastWeek: PeriodSummary.week(lastWeek, in: state),
+            weekBefore: PeriodSummary.week(lastWeek - 1, in: state),
+            newAchievements: newOnes,
+            topStreak: topName.map { ($0, top?.value ?? 0) },
+            onDone: {
+                lastRecapWeek = today.weekIndex
+                showingRecap = false
+            }
+        )
+        .interactiveDismissDisabled()
     }
 }
