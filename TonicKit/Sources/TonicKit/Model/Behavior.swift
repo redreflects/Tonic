@@ -43,6 +43,9 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
     public var isEnabled: Bool
     /// First day this behavior counts. Days before it are ignored.
     public var startDay: Day?
+    /// Set when the user turns the behavior off: it still counts for days before this one,
+    /// so turning a habit off never changes past scores.
+    public var endDay: Day?
 
     public init(
         id: String,
@@ -57,7 +60,8 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
         priorityRank: Int = 0,
         isFocus: Bool = false,
         isEnabled: Bool = true,
-        startDay: Day? = nil
+        startDay: Day? = nil,
+        endDay: Day? = nil
     ) {
         self.id = id
         self.name = name
@@ -72,5 +76,11 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
         self.isFocus = isFocus
         self.isEnabled = isEnabled
         self.startDay = startDay
+        self.endDay = endDay
+    }
+
+    /// Whether this behavior counts toward the score on `day`.
+    public func isActive(on day: Day) -> Bool {
+        (startDay.map { $0 <= day } ?? true) && (endDay.map { day < $0 } ?? true)
     }
 }

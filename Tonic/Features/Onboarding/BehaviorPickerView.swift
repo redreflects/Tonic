@@ -61,20 +61,8 @@ struct BehaviorPickerView: View {
     }
 
     private func selectableRow(_ behavior: Behavior) -> some View {
-        let isSelected = model.selectedIDs.contains(behavior.id)
-        return Button {
+        SelectableBehaviorRow(behavior: behavior, isSelected: model.selectedIDs.contains(behavior.id)) {
             model.toggle(behavior.id)
-        } label: {
-            HStack {
-                BehaviorRow(behavior: behavior)
-                Spacer()
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-            }
-            .contentShape(.rect)
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

@@ -46,7 +46,7 @@ Tonic.xcodeproj      Xcode project for the iOS app
 Tonic/               SwiftUI app
   App/               App entry point and settings keys
   Models/            On-device storage (SwiftData)
-  Features/          Onboarding, Today (check-ins, celebrations), Progress (charts, records), Settings
+  Features/          Onboarding, Today (check-ins, celebrations), Progress (charts, records), Settings (manage habits)
   DesignSystem/      Shared views and styling
 TonicKit/            Swift package: scoring engine, models, presets (no UI)
   Sources/TonicKit/

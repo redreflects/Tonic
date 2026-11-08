@@ -4,8 +4,8 @@ import TonicKit
 
 struct TodayView: View {
     @Environment(\.modelContext) private var context
-    @Query(filter: #Predicate<TrackedBehavior> { $0.isEnabled }, sort: \TrackedBehavior.priorityRank)
-    private var tracked: [TrackedBehavior]
+    /// All habits, including turned-off ones, so their past days still count.
+    @Query(sort: \TrackedBehavior.priorityRank) private var tracked: [TrackedBehavior]
     @Query private var logs: [DailyLog]
     @AppStorage(AppSettings.rankThemeID) private var rankThemeID = RankTheme.plant.id
     @AppStorage(AppSettings.journeyStartDay) private var journeyStartDay = 0
@@ -29,7 +29,7 @@ struct TodayView: View {
             logs.filter { $0.dayIndex == day.index }.map { ($0.behaviorID, $0.value) },
             uniquingKeysWith: { _, last in last }
         )
-        let behaviors = tracked.map(\.behavior).filter { ($0.startDay ?? day) <= day }
+        let behaviors = tracked.filter(\.isEnabled).map(\.behavior).filter { ($0.startDay ?? day) <= day }
         let focus = behaviors.filter(\.isFocus)
         let others = behaviors.filter { !$0.isFocus }
 

@@ -140,6 +140,24 @@ struct ProgressionTests {
         #expect(state.days[13].events.contains(.bestWeek(behaviorID: "study", amount: 490)))
     }
 
+    @Test func turningOffAHabitKeepsPastDaysUnchanged() {
+        let b = [check("read", rank: 0), check("journal", rank: 1)]
+        let logs = daily("read", .completed(true), days: 4) + daily("journal", .completed(true), days: 2)
+        var turnedOff = b
+        turnedOff[1].isEnabled = false
+        turnedOff[1].endDay = monday.advanced(by: 2)
+
+        let state = replay(turnedOff, logs, days: 4)
+        // Days 1-2: both habits done -> 100. Days 3-4: only read counts -> still 100.
+        #expect(state.days.allSatisfy { abs($0.score - 100) < 1e-9 })
+        #expect(state.behaviors["journal"]!.bestStreak == 2)
+
+        // Without an end day, a disabled habit is ignored entirely.
+        var removed = b
+        removed[1].isEnabled = false
+        #expect(replay(removed, logs, days: 4).behaviors["journal"] == nil)
+    }
+
     @Test func behaviorsAddedLaterDoNotCountBeforeTheirStart() {
         var later = check("journal", rank: 1)
         later.startDay = monday.advanced(by: 2)

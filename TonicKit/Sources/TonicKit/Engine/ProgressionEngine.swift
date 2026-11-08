@@ -80,7 +80,8 @@ public struct ProgressionEngine: Sendable {
         pendingDays: Int = 1
     ) -> ProgressionState {
         var state = ProgressionState(curve: tuning.levelCurve)
-        let active = behaviors.filter(\.isEnabled)
+        // Turned-off behaviors still count for the days they were active.
+        let active = behaviors.filter { $0.isEnabled || $0.endDay != nil }
         for behavior in active { state.behaviors[behavior.id] = BehaviorProgress() }
         guard start <= end else { return state }
 
@@ -93,7 +94,7 @@ public struct ProgressionEngine: Sendable {
 
         for day in start...end {
             let isPending = day >= firstPendingDay
-            let todays = active.filter { ($0.startDay ?? start) <= day }
+            let todays = active.filter { $0.isActive(on: day) }
             let weights = Weighting.normalizedWeights(for: todays, tuning: tuning)
 
             var events: [ProgressEvent] = []

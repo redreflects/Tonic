@@ -4,8 +4,8 @@ import SwiftUI
 import TonicKit
 
 struct ProgressTabView: View {
-    @Query(filter: #Predicate<TrackedBehavior> { $0.isEnabled }, sort: \TrackedBehavior.priorityRank)
-    private var tracked: [TrackedBehavior]
+    /// All habits, including turned-off ones, so their past days still count.
+    @Query(sort: \TrackedBehavior.priorityRank) private var tracked: [TrackedBehavior]
     @Query private var logs: [DailyLog]
     @AppStorage(AppSettings.rankThemeID) private var rankThemeID = RankTheme.plant.id
     @AppStorage(AppSettings.journeyStartDay) private var journeyStartDay = 0
@@ -37,7 +37,7 @@ struct ProgressTabView: View {
                 }
 
                 Section("Streaks & records") {
-                    ForEach(tracked.map(\.behavior)) { behavior in
+                    ForEach(tracked.filter(\.isEnabled).map(\.behavior)) { behavior in
                         NavigationLink {
                             BehaviorDetailView(behavior: behavior, state: state, logs: logs)
                         } label: {

@@ -22,6 +22,8 @@ final class TrackedBehavior {
     var isFocus: Bool
     var isEnabled: Bool
     var startDayIndex: Int?
+    /// Set when the habit is turned off. It still counts for days before this one.
+    var endDayIndex: Int?
 
     init(_ behavior: Behavior, isCustom: Bool) {
         id = behavior.id
@@ -38,6 +40,7 @@ final class TrackedBehavior {
         isFocus = behavior.isFocus
         isEnabled = behavior.isEnabled
         startDayIndex = behavior.startDay?.index
+        endDayIndex = behavior.endDay?.index
     }
 
     var behavior: Behavior {
@@ -54,7 +57,8 @@ final class TrackedBehavior {
             priorityRank: priorityRank,
             isFocus: isFocus,
             isEnabled: isEnabled,
-            startDay: startDayIndex.map(Day.init(index:))
+            startDay: startDayIndex.map(Day.init(index:)),
+            endDay: endDayIndex.map(Day.init(index:))
         )
     }
 }

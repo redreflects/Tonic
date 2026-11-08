@@ -27,6 +27,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    NavigationLink {
+                        ManageHabitsView()
+                    } label: {
+                        Label("Manage habits", systemImage: "list.bullet.rectangle")
+                    }
+                } footer: {
+                    Text("Add new habits, turn some off, re-rank, change Focus habits or edit targets.")
+                }
                 Section("Rank theme") {
                     Picker("Theme", selection: $rankThemeID) {
                         ForEach(RankTheme.all) { theme in

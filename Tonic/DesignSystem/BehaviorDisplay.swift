@@ -92,6 +92,28 @@ struct BehaviorIcon: View {
     }
 }
 
+/// A behavior with a checkmark circle; tap to select or deselect.
+struct SelectableBehaviorRow: View {
+    let behavior: Behavior
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                BehaviorRow(behavior: behavior)
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
 /// A full-width primary button pinned to the bottom of the screen.
 struct ContinueBar: View {
     let title: String
