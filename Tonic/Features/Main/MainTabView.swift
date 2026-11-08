@@ -58,11 +58,12 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                 }
                 Section {
+                    DataSettingsSection()
                     Button("Erase all data and start over", role: .destructive) {
                         confirmingReset = true
                     }
                 } footer: {
-                    Text("Your data is stored only on this phone.")
+                    Text("Your data is stored only on this phone. Export saves everything as a JSON file you can keep or move.")
                 }
                 #if DEBUG
                 Section {

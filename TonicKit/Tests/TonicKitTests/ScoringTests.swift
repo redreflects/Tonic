@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import TonicKit
 
@@ -13,6 +14,18 @@ struct DayTests {
     @Test func weekBoundaries() {
         #expect(monday.weekIndex == monday.advanced(by: 6).weekIndex)
         #expect(monday.weekIndex + 1 == monday.advanced(by: 7).weekIndex)
+    }
+}
+
+@Suite("Export format")
+struct ExportFormatTests {
+    @Test func logValuesRoundTripAsReadableJSON() throws {
+        let values: [LogValue] = [.completed(true), .slipped(false), .amount(7.5), .quality(0.8)]
+        let data = try JSONEncoder().encode(values)
+        let text = String(decoding: data, as: UTF8.self)
+        #expect(text.contains(#""kind":"amount""#))
+        #expect(!text.contains("_0"))
+        #expect(try JSONDecoder().decode([LogValue].self, from: data) == values)
     }
 }
 
@@ -115,7 +128,8 @@ struct LevelTests {
         #expect(RankTheme.frat.rank(forLevel: 250).name == "President")
         #expect(RankTheme.plant.nextRankLevel(after: 12) == 20)
         #expect(RankTheme.plant.nextRankLevel(after: 75) == nil)
-        #expect(RankTheme.all.allSatisfy { $0.rankNames.count == 8 })
+        #expect(RankTheme.all.allSatisfy { $0.rankNames.count == 8 && $0.rankSymbols.count == 8 })
+        #expect(RankTheme.frat.rank(forLevel: 75).symbol == "crown.fill")
     }
 
     @Test func presetsAreValid() {

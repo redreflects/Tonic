@@ -48,6 +48,7 @@ private struct ThemeCard: View {
             }
             ForEach(Array(theme.rankNames.enumerated()), id: \.offset) { tier, name in
                 HStack {
+                    RankBadge(rank: theme.rank(forLevel: max(tier * 10, 1)), size: 18)
                     Text(levelRange(tier))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)

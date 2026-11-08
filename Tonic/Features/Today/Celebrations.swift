@@ -131,6 +131,7 @@ struct LevelUpView: View {
     let onDismiss: () -> Void
 
     @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -141,17 +142,26 @@ struct LevelUpView: View {
             )
             .ignoresSafeArea()
 
-            ConfettiView(count: moment.newRank == nil ? 40 : 90)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            if !reduceMotion {
+                ConfettiView(count: moment.newRank == nil ? 40 : 90)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
 
             VStack(spacing: 20) {
                 Spacer()
-                Image(systemName: moment.newRank == nil ? "arrow.up.circle.fill" : theme.symbol)
-                    .font(.system(size: 96, weight: .bold))
-                    .foregroundStyle(.white)
-                    .symbolEffect(.bounce, value: appeared)
-                    .scaleEffect(appeared ? 1 : 0.3)
+                Group {
+                    if let rank = moment.newRank {
+                        RankBadge(rank: rank, size: 120)
+                            .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 96, weight: .bold))
+                            .foregroundStyle(.white)
+                            .symbolEffect(.bounce, value: appeared)
+                    }
+                }
+                .scaleEffect(appeared ? 1 : 0.3)
 
                 Text(moment.newRank == nil ? "LEVEL UP" : "NEW RANK")
                     .font(.headline.weight(.heavy))
@@ -192,7 +202,7 @@ struct LevelUpView: View {
         }
         .sensoryFeedback(.success, trigger: appeared)
         .onAppear {
-            withAnimation(.spring(duration: 0.6, bounce: 0.5)) { appeared = true }
+            withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.6, bounce: 0.5)) { appeared = true }
         }
     }
 

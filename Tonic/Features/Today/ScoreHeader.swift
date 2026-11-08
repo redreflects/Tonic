@@ -45,11 +45,14 @@ struct TodayHeader: View {
                     .matchedGeometryEffect(id: "ring", in: namespace)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Label(theme.rank(forLevel: state.level).name, systemImage: theme.symbol)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.tint)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                    HStack(spacing: 6) {
+                        RankBadge(rank: theme.rank(forLevel: state.level), size: 20)
+                        Text(theme.rank(forLevel: state.level).name)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.tint)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
                     Text("Level \(state.level)")
                         .font(.title.bold())
                         .contentTransition(.numericText())
@@ -92,9 +95,7 @@ struct TodayHeader: View {
                     Text("Level \(state.level)")
                         .font(.headline)
                         .matchedGeometryEffect(id: "level", in: namespace)
-                    Image(systemName: theme.symbol)
-                        .font(.subheadline)
-                        .foregroundStyle(.tint)
+                    RankBadge(rank: theme.rank(forLevel: state.level), size: 16)
                 }
                 ProgressView(value: state.levelProgress)
                     .tint(.accentColor)

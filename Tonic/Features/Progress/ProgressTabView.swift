@@ -75,11 +75,7 @@ private struct RankLadderCard: View {
         let rank = theme.rank(forLevel: state.level)
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                Image(systemName: theme.symbol)
-                    .font(.system(size: 30))
-                    .foregroundStyle(.white)
-                    .frame(width: 60, height: 60)
-                    .background(Color.accentColor.gradient, in: .circle)
+                RankBadge(rank: rank, size: 60)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(rank.name)
                         .font(.title2.bold())
@@ -106,8 +102,7 @@ private struct RankLadderCard: View {
                 ForEach(Array(theme.rankNames.enumerated()), id: \.offset) { tier, name in
                     let earned = tier <= rank.tier
                     HStack(spacing: 10) {
-                        Image(systemName: earned ? "checkmark.seal.fill" : "seal")
-                            .foregroundStyle(earned ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                        RankBadge(rank: theme.rank(forLevel: max(tier * 10, 1)), size: 22, isEarned: earned)
                         Text(name)
                             .font(.subheadline.weight(tier == rank.tier ? .bold : .regular))
                             .foregroundStyle(earned ? .primary : .secondary)

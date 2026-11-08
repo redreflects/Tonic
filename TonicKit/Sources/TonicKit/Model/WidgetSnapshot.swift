@@ -48,7 +48,9 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
         self.questsTotal = questsTotal
     }
 
-    public static let appGroup = "group.com.tonicapp.Tonic"
+    /// Set per build from Config/Base.xcconfig (TONIC_APP_GROUP), so contributors can use their own.
+    public static let appGroup = Bundle.main.object(forInfoDictionaryKey: "TonicAppGroup") as? String
+        ?? "group.com.tonicapp.Tonic"
     private static let key = "widgetSnapshot"
 
     public static func load() -> WidgetSnapshot? {

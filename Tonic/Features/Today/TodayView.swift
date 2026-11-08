@@ -73,6 +73,8 @@ struct TodayView: View {
                     showingYesterday: $showingYesterday,
                     canEditYesterday: canEditYesterday
                 )
+                // The header stays on screen, so keep it from taking over at huge text sizes.
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
                     if !headerCollapsed { expandedHeaderHeight = height }
                 }
@@ -153,7 +155,7 @@ struct TodayView: View {
             level: state.level,
             levelProgress: state.levelProgress,
             rankName: theme.rank(forLevel: state.level).name,
-            rankSymbol: theme.symbol,
+            rankSymbol: theme.rank(forLevel: state.level).symbol,
             focus: focus.map { b in
                 WidgetSnapshot.Habit(
                     name: b.name, icon: b.icon,

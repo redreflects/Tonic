@@ -3,8 +3,8 @@ public struct Rank: Hashable, Sendable {
     /// 0 for levels 1–9, 1 for levels 10–19, ... up to 7 for level 70+.
     public let tier: Int
     public let name: String
-    /// Asset catalog name for the badge, e.g. "rank.plant.3".
-    public let badgeAsset: String
+    /// SF Symbol drawn on this rank's badge.
+    public let symbol: String
 }
 
 /// A set of rank names. The user picks one in onboarding and can switch in Settings.
@@ -16,17 +16,22 @@ public struct RankTheme: Identifiable, Hashable, Sendable {
     public let id: String
     public let displayName: String
     public let rankNames: [String]
+    /// One SF Symbol per rank, drawn on its badge.
+    public let rankSymbols: [String]
 
-    public init(id: String, displayName: String, rankNames: [String]) {
+    public init(id: String, displayName: String, rankNames: [String], rankSymbols: [String]) {
+        precondition(rankNames.count == rankSymbols.count, "Each rank needs a symbol")
         self.id = id
         self.displayName = displayName
         self.rankNames = rankNames
+        self.rankSymbols = rankSymbols
     }
 
     public static let plant = RankTheme(
         id: "plant",
         displayName: "Plant",
-        rankNames: ["Seedling", "Sprout", "Sapling", "Bloom", "Grove", "Evergreen", "Redwood", "Ancient"]
+        rankNames: ["Seedling", "Sprout", "Sapling", "Bloom", "Grove", "Evergreen", "Redwood", "Ancient"],
+        rankSymbols: ["circle.dotted", "leaf", "leaf.fill", "camera.macro", "tree", "tree.fill", "mountain.2.fill", "sun.max.fill"]
     )
 
     public static let frat = RankTheme(
@@ -35,7 +40,8 @@ public struct RankTheme: Identifiable, Hashable, Sendable {
         rankNames: [
             "Potential New Member", "Pledge", "Pledge Class President", "Brother",
             "Philanthropy Chair", "Social Chair", "Vice President", "President",
-        ]
+        ],
+        rankSymbols: ["person", "person.fill", "person.badge.key.fill", "person.2.fill", "heart.circle.fill", "party.popper.fill", "star.circle.fill", "crown.fill"]
     )
 
     public static let all: [RankTheme] = [plant, frat]
@@ -51,7 +57,7 @@ public struct RankTheme: Identifiable, Hashable, Sendable {
 
     public func rank(forLevel level: Int) -> Rank {
         let tier = Self.tier(forLevel: level, rankCount: rankNames.count)
-        return Rank(tier: tier, name: rankNames[tier], badgeAsset: "rank.\(id).\(tier)")
+        return Rank(tier: tier, name: rankNames[tier], symbol: rankSymbols[tier])
     }
 
     /// The first level of the next rank, or nil at the top rank.

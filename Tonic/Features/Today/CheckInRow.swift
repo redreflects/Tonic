@@ -12,29 +12,26 @@ struct CheckInRow: View {
 
     @State private var editingAmount = false
     @State private var amountText = ""
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                BehaviorIcon(behavior: behavior)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Text(behavior.name)
-                            .lineLimit(2)
-                        if fromHealth {
-                            Image(systemName: "heart.fill")
-                                .font(.caption)
-                                .foregroundStyle(.pink)
-                                .accessibilityLabel("Filled in from Apple Health")
-                        }
-                    }
-                    StreakLabel(progress: progress, isFocus: behavior.isFocus)
-                }
-                Spacer(minLength: 8)
+            if typeSize.isAccessibilitySize {
+                // Very large text: name on its own line, controls underneath.
+                title
                 control
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            } else {
+                HStack(spacing: 12) {
+                    BehaviorIcon(behavior: behavior)
+                    title
+                    Spacer(minLength: 8)
+                    control
+                }
             }
             if behavior.kind == .target || behavior.kind == .volume {
-                AmountBar(behavior: behavior, amount: amount)
+                AmountBar(behavior: behavior, amount: amount, indent: !typeSize.isAccessibilitySize)
             }
         }
         .padding(.vertical, 4)
@@ -50,6 +47,23 @@ struct CheckInRow: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Enter the amount\(behavior.unit.map { " in \($0)" } ?? "").")
+        }
+    }
+
+    private var title: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Text(behavior.name)
+                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                    .fixedSize(horizontal: false, vertical: true)
+                if fromHealth {
+                    Image(systemName: "heart.fill")
+                        .font(.caption)
+                        .foregroundStyle(.pink)
+                        .accessibilityLabel("Filled in from Apple Health")
+                }
+            }
+            StreakLabel(progress: progress, isFocus: behavior.isFocus)
         }
     }
 
@@ -72,7 +86,8 @@ struct CheckInRow: View {
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(done ? "Done" : "Mark done")
+            .accessibilityLabel(done ? "\(behavior.name), done" : "Mark \(behavior.name) done")
+            .accessibilityHint(done ? "Double-tap to undo." : "")
 
         case .avoid:
             HStack(spacing: 6) {
@@ -98,7 +113,8 @@ struct CheckInRow: View {
                         .contentTransition(.numericText(value: amount))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(formatAmount(amount)) \(behavior.unit ?? ""), tap to type an amount")
+                .accessibilityLabel("\(behavior.name): \(formatAmount(amount)) \(behavior.unit ?? "")")
+                .accessibilityHint("Double-tap to type an amount.")
                 stepButton("plus") { change(by: behavior.step) }
             }
         }
@@ -117,7 +133,7 @@ struct CheckInRow: View {
                 .background(.fill.tertiary, in: .circle)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(icon == "plus" ? "Increase" : "Decrease")
+        .accessibilityLabel(icon == "plus" ? "Increase \(behavior.name)" : "Decrease \(behavior.name)")
     }
 
     private func choice(_ title: String, icon: String, selected: Bool, tint: Color, action: @escaping () -> Void) -> some View {
@@ -129,7 +145,7 @@ struct CheckInRow: View {
                 .background(selected ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(.fill.tertiary), in: .capsule)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
+        .accessibilityLabel("\(behavior.name): \(title)")
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -166,6 +182,7 @@ private struct StreakLabel: View {
 private struct AmountBar: View {
     let behavior: Behavior
     let amount: Double
+    var indent = true
 
     var body: some View {
         let target = behavior.target ?? 1
@@ -177,7 +194,7 @@ private struct AmountBar: View {
                 .font(.caption2)
                 .foregroundStyle(overLimit ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
         }
-        .padding(.leading, 46)
+        .padding(.leading, indent ? 46 : 0)
     }
 
     private func caption(target: Double) -> String {

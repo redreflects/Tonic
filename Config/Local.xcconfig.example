@@ -1,0 +1,8 @@
+// Copy this file to Config/Local.xcconfig (git-ignored) and fill it in.
+
+// Your Apple developer team ID: Xcode → Settings → Accounts, or developer.apple.com → Membership.
+DEVELOPMENT_TEAM = ABCDE12345
+
+// A reverse-domain prefix you control. Bundle IDs become <prefix>.Tonic and the
+// App Group becomes group.<prefix>.Tonic.
+TONIC_BUNDLE_PREFIX = com.yourname
