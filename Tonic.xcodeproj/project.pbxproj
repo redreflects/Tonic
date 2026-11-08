@@ -286,6 +286,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Tonic;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonic reads sleep, steps, exercise minutes, mindful minutes and water from Apple Health to fill in your habits automatically. Your data stays on this phone.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Developer builds of Tonic can add sample data to Apple Health for testing. Regular builds never write to Health.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -318,6 +320,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Tonic;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonic reads sleep, steps, exercise minutes, mindful minutes and water from Apple Health to fill in your habits automatically. Your data stays on this phone.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Developer builds of Tonic can add sample data to Apple Health for testing. Regular builds never write to Health.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

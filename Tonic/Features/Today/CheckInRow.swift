@@ -6,6 +6,7 @@ struct CheckInRow: View {
     let behavior: Behavior
     let value: LogValue?
     let progress: BehaviorProgress?
+    var fromHealth = false
     /// Pass `nil` to clear the log for this day.
     let onChange: (LogValue?) -> Void
 
@@ -17,8 +18,16 @@ struct CheckInRow: View {
             HStack(spacing: 12) {
                 BehaviorIcon(behavior: behavior)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(behavior.name)
-                        .lineLimit(2)
+                    HStack(spacing: 4) {
+                        Text(behavior.name)
+                            .lineLimit(2)
+                        if fromHealth {
+                            Image(systemName: "heart.fill")
+                                .font(.caption)
+                                .foregroundStyle(.pink)
+                                .accessibilityLabel("Filled in from Apple Health")
+                        }
+                    }
                     StreakLabel(progress: progress, isFocus: behavior.isFocus)
                 }
                 Spacer(minLength: 8)

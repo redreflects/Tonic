@@ -7,8 +7,14 @@ records and ranks as you improve.
 Tonic is personal and private. There are no accounts and no servers, and all data stays on your phone.
 
 > **Status:** early development. Onboarding, daily check-ins, the score dashboard,
-> celebrations, weekly quests, achievements, character stats, weekly recaps, reminders and a
-> home-screen widget all work. Apple Health sync is next.
+> celebrations, weekly quests, achievements, character stats, weekly recaps, reminders, a
+> home-screen widget and Apple Health sync all work. Polish and the public release are next.
+
+## Apple Health
+
+Turn on **Settings → Apple Health** to fill in Sleep, Steps, Exercise, Meditate and Hydration
+automatically. Tonic only reads Health data, keeps it on your phone, and never overwrites
+anything you logged by hand.
 
 ## How scoring works
 
@@ -49,6 +55,7 @@ Tonic.xcodeproj      Xcode project for the iOS app
 Tonic/               SwiftUI app
   App/               App entry point and settings keys
   Models/            On-device storage (SwiftData)
+  Health/            Apple Health sync
   Features/          Onboarding, Today (check-ins, celebrations), Progress (charts, records), Settings (manage habits)
   DesignSystem/      Shared views and styling
 TonicWidget/         Home-screen and Lock Screen widget

@@ -3,6 +3,10 @@ import SwiftUI
 import TonicKit
 
 struct MainTabView: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(AppSettings.healthSyncEnabled) private var healthSyncEnabled = false
+
     var body: some View {
         TabView {
             Tab("Today", systemImage: "sun.max.fill") {
@@ -14,6 +18,11 @@ struct MainTabView: View {
             Tab("Settings", systemImage: "gearshape.fill") {
                 SettingsView()
             }
+        }
+        // Pull in new Apple Health data whenever the app comes to the front.
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            guard phase == .active, healthSyncEnabled else { return }
+            Task { await HealthSync.shared.sync(context: context) }
         }
     }
 }
@@ -37,6 +46,8 @@ struct SettingsView: View {
                     Text("Add new habits, turn some off, re-rank, change Focus habits or edit targets.")
                 }
                 ReminderSettingsSection()
+
+                HealthSettingsSection()
 
                 Section("Rank theme") {
                     Picker("Theme", selection: $rankThemeID) {

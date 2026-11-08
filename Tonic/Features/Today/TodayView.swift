@@ -32,6 +32,7 @@ struct TodayView: View {
             logs.filter { $0.dayIndex == day.index }.map { ($0.behaviorID, $0.value) },
             uniquingKeysWith: { _, last in last }
         )
+        let healthIDs = Set(logs.filter { $0.dayIndex == day.index && $0.isFromHealth }.map(\.behaviorID))
         let behaviors = tracked.filter(\.isEnabled).map(\.behavior).filter { ($0.startDay ?? day) <= day }
         let focus = behaviors.filter(\.isFocus)
         let others = behaviors.filter { !$0.isFocus }
@@ -40,12 +41,12 @@ struct TodayView: View {
             List {
                 if !focus.isEmpty {
                     Section("Focus") {
-                        ForEach(focus) { row($0, day: day, value: dayLogs[$0.id], state: state) }
+                        ForEach(focus) { row($0, day: day, value: dayLogs[$0.id], state: state, fromHealth: healthIDs.contains($0.id)) }
                     }
                 }
                 if !others.isEmpty {
                     Section(focus.isEmpty ? "Habits" : "Everything else") {
-                        ForEach(others) { row($0, day: day, value: dayLogs[$0.id], state: state) }
+                        ForEach(others) { row($0, day: day, value: dayLogs[$0.id], state: state, fromHealth: healthIDs.contains($0.id)) }
                     }
                 }
                 if !state.quests.isEmpty {
@@ -121,8 +122,8 @@ struct TodayView: View {
         }
     }
 
-    private func row(_ behavior: Behavior, day: Day, value: LogValue?, state: ProgressionState) -> some View {
-        CheckInRow(behavior: behavior, value: value, progress: state.behaviors[behavior.id]) { newValue in
+    private func row(_ behavior: Behavior, day: Day, value: LogValue?, state: ProgressionState, fromHealth: Bool) -> some View {
+        CheckInRow(behavior: behavior, value: value, progress: state.behaviors[behavior.id], fromHealth: fromHealth) { newValue in
             log(newValue, behavior: behavior, day: day, before: state)
         }
     }

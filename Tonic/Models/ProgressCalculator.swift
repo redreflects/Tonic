@@ -33,6 +33,7 @@ extension ModelContext {
         switch (match, value) {
         case (let log?, let value?):
             log.value = value
+            log.source = nil // edited by hand now
         case (let log?, nil):
             delete(log)
         case (nil, let value?):

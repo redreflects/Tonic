@@ -12,13 +12,20 @@ final class DailyLog {
     /// 1/0 for completed and slipped, otherwise the amount or quality.
     var number: Double
     var updatedAt: Date
+    /// "health" when filled in from Apple Health; nil when logged by hand.
+    /// Sync only ever updates Health-filled logs, so manual entries always win.
+    var source: String?
 
     init(_ entry: LogEntry) {
         behaviorID = entry.behaviorID
         dayIndex = entry.day.index
         (valueKind, number) = Self.encode(entry.value)
         updatedAt = .now
+        source = nil
     }
+
+    var isFromHealth: Bool { source == DailyLog.healthSource }
+    static let healthSource = "health"
 
     var entry: LogEntry {
         LogEntry(behaviorID: behaviorID, day: Day(index: dayIndex), value: value)

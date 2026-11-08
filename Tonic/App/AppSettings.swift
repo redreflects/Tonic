@@ -9,6 +9,7 @@ enum AppSettings {
     /// Week number of the last weekly recap shown.
     static let lastRecapWeek = "lastRecapWeek"
     static let reminderEnabled = "reminderEnabled"
+    static let healthSyncEnabled = "healthSyncEnabled"
     /// Minutes after midnight.
     static let reminderTime = "reminderTime"
 }
