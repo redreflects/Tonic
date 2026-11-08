@@ -58,6 +58,11 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
         return try? JSONDecoder().decode(WidgetSnapshot.self, from: data)
     }
 
+    /// Removes the saved snapshot, so the widget shows its "get started" state.
+    public static func clear() {
+        UserDefaults(suiteName: appGroup)?.removeObject(forKey: key)
+    }
+
     public func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
         UserDefaults(suiteName: Self.appGroup)?.set(data, forKey: Self.key)

@@ -35,8 +35,9 @@ enum SampleHistory {
             }
         }
 
-        for item in tracked {
-            item.startDayIndex = min(item.startDayIndex ?? newStart.index, newStart.index)
+        // Only habits that began with the journey move back; ones added later keep their start.
+        for item in tracked where (item.startDayIndex ?? end.index) <= end.index {
+            item.startDayIndex = newStart.index
         }
         try? context.save()
         defaults.set(newStart.index, forKey: AppSettings.journeyStartDay)

@@ -20,6 +20,19 @@ public enum BehaviorCategory: String, Codable, Sendable, CaseIterable {
     case body, mind, social, work
 }
 
+/// A stretch of days, `start` included and `end` excluded.
+public struct DayRange: Hashable, Codable, Sendable {
+    public var start: Day
+    public var end: Day
+
+    public init(start: Day, end: Day) {
+        self.start = start
+        self.end = end
+    }
+
+    public func contains(_ day: Day) -> Bool { start <= day && day < end }
+}
+
 /// A behavior the user tracks, including their priority settings for it.
 public struct Behavior: Identifiable, Hashable, Codable, Sendable {
     public var id: String
@@ -46,6 +59,9 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
     /// Set when the user turns the behavior off: it still counts for days before this one,
     /// so turning a habit off never changes past scores.
     public var endDay: Day?
+    /// Earlier stretches when the habit was turned off and later turned back on.
+    /// Those days don't count, so pausing never changes the scores around it.
+    public var pausedRanges: [DayRange]
 
     public init(
         id: String,
@@ -61,7 +77,8 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
         isFocus: Bool = false,
         isEnabled: Bool = true,
         startDay: Day? = nil,
-        endDay: Day? = nil
+        endDay: Day? = nil,
+        pausedRanges: [DayRange] = []
     ) {
         self.id = id
         self.name = name
@@ -77,10 +94,13 @@ public struct Behavior: Identifiable, Hashable, Codable, Sendable {
         self.isEnabled = isEnabled
         self.startDay = startDay
         self.endDay = endDay
+        self.pausedRanges = pausedRanges
     }
 
     /// Whether this behavior counts toward the score on `day`.
     public func isActive(on day: Day) -> Bool {
-        (startDay.map { $0 <= day } ?? true) && (endDay.map { day < $0 } ?? true)
+        (startDay.map { $0 <= day } ?? true)
+            && (endDay.map { day < $0 } ?? true)
+            && !pausedRanges.contains { $0.contains(day) }
     }
 }

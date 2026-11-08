@@ -12,6 +12,8 @@ final class HealthSync {
     static let shared = HealthSync()
 
     private let store = HKHealthStore()
+    /// Only one sync at a time, so two can't both add the same entry.
+    private var isSyncing = false
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -51,7 +53,9 @@ final class HealthSync {
     /// Returns how many habit logs were added or updated.
     @discardableResult
     func sync(context: ModelContext, lookbackDays: Int = 14) async -> Int {
-        guard isAvailable else { return 0 }
+        guard isAvailable, !isSyncing else { return 0 }
+        isSyncing = true
+        defer { isSyncing = false }
         let supported = HealthImport.supportedBehaviorIDs
         let tracked = ((try? context.fetch(FetchDescriptor<TrackedBehavior>())) ?? [])
             .filter { $0.isEnabled && supported.contains($0.id) }

@@ -24,6 +24,8 @@ final class TrackedBehavior {
     var startDayIndex: Int?
     /// Set when the habit is turned off. It still counts for days before this one.
     var endDayIndex: Int?
+    /// Earlier turned-off stretches, saved as "start-end,start-end" (day numbers, end excluded).
+    var pausedRangesRaw: String = ""
 
     init(_ behavior: Behavior, isCustom: Bool) {
         id = behavior.id
@@ -41,6 +43,19 @@ final class TrackedBehavior {
         isEnabled = behavior.isEnabled
         startDayIndex = behavior.startDay?.index
         endDayIndex = behavior.endDay?.index
+        pausedRanges = behavior.pausedRanges
+    }
+
+    var pausedRanges: [DayRange] {
+        get {
+            pausedRangesRaw.split(separator: ",").compactMap { part in
+                let bounds = part.split(separator: "-").compactMap { Int($0) }
+                return bounds.count == 2 ? DayRange(start: Day(index: bounds[0]), end: Day(index: bounds[1])) : nil
+            }
+        }
+        set {
+            pausedRangesRaw = newValue.map { "\($0.start.index)-\($0.end.index)" }.joined(separator: ",")
+        }
     }
 
     var behavior: Behavior {
@@ -58,7 +73,8 @@ final class TrackedBehavior {
             isFocus: isFocus,
             isEnabled: isEnabled,
             startDay: startDayIndex.map(Day.init(index:)),
-            endDay: endDayIndex.map(Day.init(index:))
+            endDay: endDayIndex.map(Day.init(index:)),
+            pausedRanges: pausedRanges
         )
     }
 }

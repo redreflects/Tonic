@@ -43,7 +43,7 @@ struct ManageHabitsView: View {
                 } header: {
                     Text("Turned off")
                 } footer: {
-                    Text("Past logs and scores are kept. A habit you turn back on starts fresh from today.")
+                    Text("Past logs and scores are kept. Turning a habit back on picks up where it left off; the days it was off don't count.")
                 }
             }
         }
@@ -109,8 +109,8 @@ struct ManageHabitsView: View {
 
     private func turnOff(_ item: TrackedBehavior) {
         withAnimation {
+            // Focus stays set so past days keep scoring exactly as before.
             item.isEnabled = false
-            item.isFocus = false
             item.endDayIndex = Day(.now).index
             renumber(active.filter { $0.id != item.id })
         }
@@ -118,11 +118,18 @@ struct ManageHabitsView: View {
 
     private func turnOn(_ item: TrackedBehavior) {
         withAnimation {
-            item.isEnabled = true
+            let today = Day(.now)
+            // Skip the days it was off, but keep everything before them.
+            if let end = item.endDayIndex, end < today.index {
+                item.pausedRanges.append(DayRange(start: Day(index: end), end: today))
+            }
             item.endDayIndex = nil
-            item.startDayIndex = Day(.now).index
-            item.priorityRank = active.count
-            try? context.save()
+            if item.isFocus && focusCount >= OnboardingModel.maxFocus { item.isFocus = false }
+            // Slot it back into its old place in the ranking, so its past days weigh the same.
+            var ordered = active
+            ordered.insert(item, at: min(max(item.priorityRank, 0), ordered.count))
+            item.isEnabled = true
+            renumber(ordered)
         }
     }
 

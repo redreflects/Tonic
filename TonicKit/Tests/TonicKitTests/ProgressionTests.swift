@@ -164,6 +164,22 @@ struct ProgressionTests {
         #expect(replay(removed, logs, days: 4).behaviors["journal"] == nil)
     }
 
+    @Test func turningAHabitBackOnKeepsItsHistory() {
+        // Journal is done every day; it's turned off on day 2 and back on day 4.
+        let b = [check("read", rank: 0), check("journal", rank: 1)]
+        let logs = daily("read", .completed(true), days: 6) + daily("journal", .completed(true), days: 6)
+        var paused = b
+        paused[1].pausedRanges = [DayRange(start: monday.advanced(by: 2), end: monday.advanced(by: 4))]
+
+        let original = replay(b, logs, days: 2)
+        let after = replay(paused, logs, days: 6)
+        // Days before the pause score exactly as they did before it.
+        #expect(after.days[0].xp == original.days[0].xp && after.days[1].xp == original.days[1].xp)
+        // Paused days don't count, and the streak picks up where it left off.
+        #expect(after.days[2].qualities["journal"] == nil)
+        #expect(after.behaviors["journal"]!.streak == 4)
+    }
+
     @Test func behaviorsAddedLaterDoNotCountBeforeTheirStart() {
         var later = check("journal", rank: 1)
         later.startDay = monday.advanced(by: 2)

@@ -1,11 +1,14 @@
 import SwiftData
 import SwiftUI
 import TonicKit
+import WidgetKit
 
 struct MainTabView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(AppSettings.healthSyncEnabled) private var healthSyncEnabled = false
+    /// Changes when the calendar day does, so Today and Progress roll over at midnight.
+    @State private var currentDay = Day(.now)
 
     var body: some View {
         TabView {
@@ -19,11 +22,24 @@ struct MainTabView: View {
                 SettingsView()
             }
         }
+        .id(currentDay)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            refreshDay()
+        }
         // Pull in new Apple Health data whenever the app comes to the front.
         .onChange(of: scenePhase, initial: true) { _, phase in
-            guard phase == .active, healthSyncEnabled else { return }
+            guard phase == .active else { return }
+            refreshDay()
+            guard healthSyncEnabled else { return }
             Task { await HealthSync.shared.sync(context: context) }
         }
+    }
+}
+
+extension MainTabView {
+    fileprivate func refreshDay() {
+        let today = Day(.now)
+        if today != currentDay { currentDay = today }
     }
 }
 
@@ -92,6 +108,10 @@ struct SettingsView: View {
         try? context.delete(model: DailyLog.self)
         try? context.delete(model: TrackedBehavior.self)
         try? context.save()
+        UserDefaults.standard.removeObject(forKey: AppSettings.journeyStartDay)
+        UserDefaults.standard.removeObject(forKey: AppSettings.lastRecapWeek)
+        WidgetSnapshot.clear()
+        WidgetCenter.shared.reloadAllTimelines()
         hasOnboarded = false
     }
 }
